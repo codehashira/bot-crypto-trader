@@ -1,0 +1,18 @@
+# Cryptocurrency Trading Bot - Requirements.txt
+
+# Core dependencies
+aiohttp==3.8.5
+pandas==2.0.3
+numpy==1.24.3
+ccxt==3.0.74
+pydantic==2.0.3
+
+# Visualization and UI
+matplotlib==3.7.2
+
+# Notifications
+python-telegram-bot==13.15
+
+# Testing and development
+pytest==7.4.0
+pytest-asyncio==0.21.1

@@ -1,0 +1,3 @@
+"""
+Cryptocurrency trading bot package.
+""" 
