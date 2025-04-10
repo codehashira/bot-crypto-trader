@@ -13,13 +13,16 @@ import sys
 from datetime import datetime
 from typing import Dict, List, Optional
 
-from data.data_collector import DataCollector
-from exchange.exchange_interface import ExchangeInterface
-from strategy.strategy_engine import StrategyManager
-from execution.order_executor import OrderExecutor
-from risk.risk_manager import RiskManager
-from utils.monitoring import MonitoringSystem
-from backtesting.paper_trading import PaperTradingSystem
+# Add the project root to the Python path
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+
+from src.data.data_collector import DataCollector
+from src.exchange.binance_exchange import BinanceExchange
+from src.strategy.strategy_engine import StrategyManager
+from src.execution.order_executor import OrderExecutor
+from src.risk.risk_manager import RiskManager
+from src.utils.monitoring import MonitoringSystem
+from src.backtesting.paper_trading import PaperTradingSystem
 
 # Configure logging
 logging.basicConfig(
@@ -152,7 +155,7 @@ class TradingBot:
         # Initialize exchanges
         self.exchanges = {}
         for exchange_name, exchange_config in self.config.get('exchanges', {}).items():
-            self.exchanges[exchange_name] = ExchangeInterface({
+            self.exchanges[exchange_name] = BinanceExchange({
                 **exchange_config,
                 'name': exchange_name
             })
