@@ -11,7 +11,8 @@ from datetime import datetime, timedelta
 from typing import Dict, List, Optional, Set, Tuple, Union
 
 from ..models.base_models import (
-    Order, OrderSide, OrderStatus, OrderType, Position, PositionSide, Signal, Trade
+    Order, OrderSide, OrderStatus, OrderType, Position, PositionSide, Signal, Trade,
+    Exchange, ExchangeType
 )
 from ..data.data_collector import DataCollector
 from ..exchange.exchange_interface import ExchangeInterface
@@ -39,7 +40,18 @@ class PaperTradingExchange(ExchangeInterface):
             exchange_config: Exchange configuration
             data_collector: Data collector instance for market data
         """
-        super().__init__(exchange_config)
+        # Create Exchange object from config
+        exchange = Exchange(
+            name=exchange_config['name'],
+            exchange_type=ExchangeType.CEX,
+            base_url="",
+            websocket_url="",
+            api_key=exchange_config.get('api_key', ''),
+            api_secret=exchange_config.get('api_secret', ''),
+            trading_pairs=exchange_config.get('trading_pairs', [])
+        )
+        super().__init__(exchange)
+        
         self.data_collector = data_collector
         self.balances = exchange_config.get('initial_balances', {})
         self.open_orders = {}  # Dict to track open orders
@@ -245,6 +257,21 @@ class PaperTradingExchange(ExchangeInterface):
             Dictionary mapping currency symbols to balances
         """
         return self.balances
+    
+    async def fetch_trades(self, trading_pair: str, limit: int = 50) -> List[Trade]:
+        """
+        Fetch recent trades for a trading pair.
+        
+        Args:
+            trading_pair: Trading pair symbol
+            limit: Number of trades to fetch
+            
+        Returns:
+            List of Trade objects
+        """
+        # Filter trades by trading pair and limit the number of results
+        trades = [trade for trade in self.trade_history if trade.trading_pair == trading_pair]
+        return trades[-limit:] if trades else []
     
     async def _execute_order(self, order: Order) -> None:
         """

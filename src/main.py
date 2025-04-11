@@ -23,6 +23,7 @@ from src.execution.order_executor import OrderExecutor
 from src.risk.risk_manager import RiskManager
 from src.utils.monitoring import MonitoringSystem
 from src.backtesting.paper_trading import PaperTradingSystem
+from src.exchange.exchange import Exchange, ExchangeType
 
 # Configure logging
 logging.basicConfig(
@@ -155,10 +156,19 @@ class TradingBot:
         # Initialize exchanges
         self.exchanges = {}
         for exchange_name, exchange_config in self.config.get('exchanges', {}).items():
-            self.exchanges[exchange_name] = BinanceExchange({
-                **exchange_config,
-                'name': exchange_name
-            })
+            # Create Exchange object from config
+            exchange = Exchange(
+                name=exchange_name,
+                exchange_type=ExchangeType.CEX,
+                base_url="",
+                websocket_url="",
+                api_key=exchange_config.get('api_key', ''),
+                api_secret=exchange_config.get('api_secret', ''),
+                trading_pairs=exchange_config.get('trading_pairs', [])
+            )
+            
+            # Create BinanceExchange with the Exchange object
+            self.exchanges[exchange_name] = BinanceExchange(exchange)
         
         # Initialize data collector
         self.data_collector = DataCollector(list(self.exchanges.values()))
@@ -432,11 +442,16 @@ async def main():
         logger.info("Shutdown signal received")
         bot.stop()
     
-    for sig in (signal.SIGINT, signal.SIGTERM):
-        loop.add_signal_handler(sig, signal_handler)
+    # Only add signal handlers on Unix-like systems
+    if sys.platform != 'win32':
+        for sig in (signal.SIGINT, signal.SIGTERM):
+            loop.add_signal_handler(sig, signal_handler)
     
     try:
         await bot.start()
+    except KeyboardInterrupt:
+        logger.info("Keyboard interrupt received")
+        bot.stop()
     except Exception as e:
         logger.error(f"Error starting trading bot: {e}")
     finally:
